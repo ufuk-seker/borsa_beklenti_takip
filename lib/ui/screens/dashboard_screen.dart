@@ -26,10 +26,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final provider = Provider.of<BorsaProvider>(context);
     final int currentYear = provider.selectedYear;
     
-    // Filter companies to only show those that have targets for the selected year
-    List<Company> companies = provider.companies.where((c) {
+    // Identify top 5 growth companies for ranking
+    final allCompaniesWithTargets = provider.companies.where((c) {
       return provider.targets.any((t) => t.companyId == c.id && t.year == currentYear);
     }).toList();
+
+    allCompaniesWithTargets.sort((a, b) {
+      final tA = provider.targets.firstWhere((t) => t.companyId == a.id && t.year == currentYear, orElse: () => FinancialTarget(companyId: a.id, year: currentYear));
+      final tB = provider.targets.firstWhere((t) => t.companyId == b.id && t.year == currentYear, orElse: () => FinancialTarget(companyId: b.id, year: currentYear));
+      return ((tB.salesGrowth ?? 0) + (tB.ebitdaGrowth ?? 0)).compareTo((tA.salesGrowth ?? 0) + (tA.ebitdaGrowth ?? 0));
+    });
+
+    final topGrowthIds = allCompaniesWithTargets.take(5).map((c) => c.id).toList();
+
+    List<Company> companies = List.from(allCompaniesWithTargets);
 
     // Apply sorting logic safely
     try {
@@ -198,14 +208,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 8),
             const Text("Şirketlerin yıllık hedeflerine olan uzaklığını buradan takip edebilirsiniz.", style: TextStyle(color: AppTheme.textDim)),
             const SizedBox(height: 32),
-            _isGridView ? _buildGridView(context, provider, companies) : _buildTableView(context, provider, companies),
+            _isGridView ? _buildGridView(context, provider, companies, topGrowthIds) : _buildTableView(context, provider, companies),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGridView(BuildContext context, BorsaProvider provider, List<Company> companies) {
+  Widget _buildGridView(BuildContext context, BorsaProvider provider, List<Company> companies, List<String> topGrowthIds) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -213,10 +223,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         maxCrossAxisExtent: 400,
         mainAxisSpacing: 24,
         crossAxisSpacing: 24,
-        childAspectRatio: 1.2,
+        childAspectRatio: 1.0,
       ),
       itemCount: companies.length,
-      itemBuilder: (context, index) => CompanyProgressCard(company: companies[index]),
+      itemBuilder: (context, index) {
+        final company = companies[index];
+        final rank = topGrowthIds.contains(company.id) ? topGrowthIds.indexOf(company.id) + 1 : 0;
+        return CompanyProgressCard(company: company, rank: rank);
+      },
     );
   }
 

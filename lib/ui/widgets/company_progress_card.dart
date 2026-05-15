@@ -9,18 +9,44 @@ import 'package:provider/provider.dart';
 
 class CompanyProgressCard extends StatelessWidget {
   final Company company;
+  final int rank;
 
-  const CompanyProgressCard({super.key, required this.company});
+  const CompanyProgressCard({
+    super.key, 
+    required this.company,
+    this.rank = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<BorsaProvider>(context);
     final salesProgress = provider.getProgress(company.id, provider.selectedYear, 'sales');
     final ebitdaProgress = provider.getProgress(company.id, provider.selectedYear, 'ebitda');
+    final target = provider.targets.firstWhere(
+      (t) => t.companyId == company.id && t.year == provider.selectedYear,
+      orElse: () => FinancialTarget(companyId: company.id, year: provider.selectedYear),
+    );
     final progress = (salesProgress + ebitdaProgress) / 2;
 
-    return Card(
-      child: Stack(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: rank > 0 && rank <= 3 ? [
+          BoxShadow(
+            color: AppTheme.accentGreen.withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 2,
+          )
+        ] : null,
+      ),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: rank > 0 && rank <= 3 
+            ? const BorderSide(color: AppTheme.accentGreen, width: 0.5) 
+            : BorderSide.none,
+        ),
+        child: Stack(
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
@@ -44,7 +70,28 @@ class CompanyProgressCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+                    if (rank > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: rank <= 3 ? Colors.amber.withOpacity(0.2) : AppTheme.accentGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: rank <= 3 ? Colors.amber : AppTheme.accentGreen,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          "#$rank",
+                          style: TextStyle(
+                            color: rank <= 3 ? Colors.amber : AppTheme.accentGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,6 +114,18 @@ class CompanyProgressCard extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    _buildTargetMiniInfo("S. Büyüme", "%${target.salesGrowth?.toStringAsFixed(0) ?? '0'}", AppTheme.accentGreen),
+                    _buildTargetMiniInfo("F. Büyüme", "%${target.ebitdaGrowth?.toStringAsFixed(0) ?? '0'}", AppTheme.accentBlue),
+                    _buildTargetMiniInfo("F. Marj", "%${target.ebitdaMargin?.toStringAsFixed(0) ?? '0'}", Colors.purpleAccent),
+                    if ((target.salesGrowth ?? 0) > 50 || (target.ebitdaGrowth ?? 0) > 50)
+                      _buildBadge("HIGH GROWTH", Colors.deepOrange),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -141,8 +200,9 @@ class CompanyProgressCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCompactProgress(String label, double progress, Color color) {
     return Column(
@@ -166,6 +226,31 @@ class CompanyProgressCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTargetMiniInfo(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: AppTheme.textDim, fontSize: 9)),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+      ],
+    );
+  }
+
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.5), width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
