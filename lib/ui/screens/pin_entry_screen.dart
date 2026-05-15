@@ -49,9 +49,11 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
           ),
         ),
         child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.all(32),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: AppTheme.surface.withOpacity(0.5),
               borderRadius: BorderRadius.circular(24),
@@ -104,6 +106,7 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -31,7 +31,7 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
   final _tickerController = TextEditingController();
   final _nameController = TextEditingController();
   final _sectorController = TextEditingController();
-
+  String? _tickerError;
   final _ebitdaGrowthController = TextEditingController();
 
   @override
@@ -143,14 +143,15 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
             _buildSectionTitle("Şirket Bilgileri"),
             if (widget.company.id == 'new') ...[
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _buildField("Borsa Kodu (Ticker)", _tickerController)),
+                  Expanded(child: _buildField("Borsa Kodu (Ticker)*", _tickerController, keyboardType: TextInputType.text, errorText: _tickerError)),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildField("Şirket Adı", _nameController)),
+                  Expanded(child: _buildField("Şirket Adı", _nameController, keyboardType: TextInputType.text)),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildField("Sektör", _sectorController),
+              _buildField("Sektör", _sectorController, keyboardType: TextInputType.text),
               const SizedBox(height: 24),
             ],
             
@@ -197,11 +198,17 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
                 onPressed: () {
                   final provider = Provider.of<BorsaProvider>(context, listen: false);
                   if (widget.company.id == 'new') {
+                    if (_tickerController.text.trim().isEmpty) {
+                      setState(() => _tickerError = "Borsa kodu zorunludur!");
+                      return;
+                    }
+                    setState(() => _tickerError = null);
+                    
                     final company = Company(
                       id: '', 
-                      ticker: _tickerController.text.toUpperCase(),
-                      name: _nameController.text,
-                      sector: _sectorController.text,
+                      ticker: _tickerController.text.trim().toUpperCase(),
+                      name: _nameController.text.trim().isEmpty ? _tickerController.text.trim().toUpperCase() : _nameController.text.trim(),
+                      sector: _sectorController.text.trim(),
                     );
 
                     final target = FinancialTarget(
@@ -215,6 +222,17 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
                     );
 
                     provider.addCompany(company, target);
+                  } else {
+                    final target = FinancialTarget(
+                      companyId: widget.company.id,
+                      year: provider.selectedYear,
+                      sales: double.tryParse(_salesController.text),
+                      salesGrowth: double.tryParse(_salesGrowthController.text),
+                      ebitda: double.tryParse(_ebitdaController.text),
+                      ebitdaGrowth: double.tryParse(_ebitdaGrowthController.text),
+                      ebitdaMargin: double.tryParse(_ebitdaMarginController.text),
+                    );
+                    provider.updateTarget(target);
                   }
 
                   Navigator.pop(context);
@@ -236,7 +254,7 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, {Function(String)? onChanged, String? suffix, int maxLines = 1}) {
+  Widget _buildField(String label, TextEditingController controller, {Function(String)? onChanged, String? suffix, int maxLines = 1, TextInputType keyboardType = TextInputType.number, String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,11 +262,14 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
         const SizedBox(height: 6),
         TextField(
           controller: controller,
-          onChanged: onChanged,
+          onChanged: (val) {
+            if (onChanged != null) onChanged(val);
+          },
           maxLines: maxLines,
-          keyboardType: TextInputType.number,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             suffixText: suffix,
+            errorText: errorText,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),

@@ -32,6 +32,13 @@ class BorsaTerminaliApp extends StatelessWidget {
       title: 'Borsa Terminali',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      builder: (context, child) {
+        return MediaQuery(
+          // Forcing text scale to 1.0 to prevent "huge" UI on high-DPI or zoomed screens
+          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child!,
+        );
+      },
       home: const PinEntryScreen(),
     );
   }

@@ -69,6 +69,15 @@ class BorsaProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateTarget(FinancialTarget target) async {
+    try {
+      await SupabaseService.saveFinancialTarget(target);
+      await refreshData();
+    } catch (e) {
+      debugPrint("Hedef Güncelleme Hatası: $e");
+    }
+  }
+
   Future<void> addActual(QuarterlyActual actual) async {
     try {
       await SupabaseService.saveQuarterlyActual(actual);
@@ -104,7 +113,13 @@ class BorsaProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> importFromExcel() async {
+  Future<void> importFromExcel({bool withBackup = false}) async {
+    if (withBackup) {
+      await exportToExcel();
+      // Brief delay to ensure export starts/completes before picker opens
+      await Future.delayed(const Duration(milliseconds: 800));
+    }
+
     final data = await ExcelService.importFromExcel();
     if (data != null) {
       _isLoading = true;
@@ -190,12 +205,19 @@ class BorsaProvider extends ChangeNotifier {
     double currentTotal = 0;
     double targetValue = 0;
 
-    if (metric == 'sales') {
-      currentTotal = companyActuals.map((a) => a.sales).fold(0.0, (a, b) => a + b);
-      targetValue = target.sales ?? 1.0;
-    } else if (metric == 'ebitda') {
-      currentTotal = companyActuals.map((a) => a.ebitda).fold(0.0, (a, b) => a + b);
-      targetValue = target.ebitda ?? 1.0;
+    if (companyActuals.isNotEmpty) {
+      // Find the latest quarter data since it's cumulative
+      final latestActual = companyActuals.reduce((curr, next) => curr.quarter > next.quarter ? curr : next);
+      
+      if (metric == 'sales') {
+        currentTotal = latestActual.sales;
+        targetValue = target.sales ?? 1.0;
+      } else if (metric == 'ebitda') {
+        currentTotal = latestActual.ebitda;
+        targetValue = target.ebitda ?? 1.0;
+      }
+    } else {
+      targetValue = 1.0;
     }
 
     if (targetValue == 0) return 0.0;
