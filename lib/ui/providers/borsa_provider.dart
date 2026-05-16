@@ -61,6 +61,8 @@ class BorsaProvider extends ChangeNotifier {
         ebitda: target.ebitda,
         ebitdaGrowth: target.ebitdaGrowth,
         ebitdaMargin: target.ebitdaMargin,
+        investment: target.investment,
+        notes: target.notes,
       );
       await SupabaseService.saveFinancialTarget(newTarget);
       await refreshData();
@@ -160,6 +162,8 @@ class BorsaProvider extends ChangeNotifier {
               ebitda: t.ebitda,
               ebitdaGrowth: t.ebitdaGrowth,
               ebitdaMargin: t.ebitdaMargin,
+              investment: t.investment,
+              notes: t.notes,
             ));
           }
         }

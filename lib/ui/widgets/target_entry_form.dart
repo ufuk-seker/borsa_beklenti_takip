@@ -219,6 +219,8 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
                       ebitda: double.tryParse(_ebitdaController.text),
                       ebitdaGrowth: double.tryParse(_ebitdaGrowthController.text),
                       ebitdaMargin: double.tryParse(_ebitdaMarginController.text),
+                      investment: double.tryParse(_investmentController.text),
+                      notes: _notesController.text.trim(),
                     );
 
                     provider.addCompany(company, target);
@@ -231,6 +233,8 @@ class _TargetEntryFormState extends State<TargetEntryForm> {
                       ebitda: double.tryParse(_ebitdaController.text),
                       ebitdaGrowth: double.tryParse(_ebitdaGrowthController.text),
                       ebitdaMargin: double.tryParse(_ebitdaMarginController.text),
+                      investment: double.tryParse(_investmentController.text),
+                      notes: _notesController.text.trim(),
                     );
                     provider.updateTarget(target);
                   }

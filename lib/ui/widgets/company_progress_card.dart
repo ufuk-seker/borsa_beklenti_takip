@@ -124,8 +124,12 @@ class CompanyProgressCard extends StatelessWidget {
                     _buildTargetMiniInfo("S. Büyüme", "%${target.salesGrowth?.toStringAsFixed(0) ?? '0'}", AppTheme.accentGreen),
                     _buildTargetMiniInfo("F. Büyüme", "%${target.ebitdaGrowth?.toStringAsFixed(0) ?? '0'}", AppTheme.accentBlue),
                     _buildTargetMiniInfo("F. Marj", "%${target.ebitdaMargin?.toStringAsFixed(0) ?? '0'}", Colors.purpleAccent),
-                    if ((target.salesGrowth ?? 0) > 50 || (target.ebitdaGrowth ?? 0) > 50)
-                      _buildBadge("HIGH GROWTH", Colors.deepOrange),
+                    if ((target.salesGrowth ?? 0) < 0 || (target.ebitdaGrowth ?? 0) < 0)
+                      _buildBadge("NEGATIVE", AppTheme.accentRed)
+                    else if ((target.salesGrowth ?? 0) > 50 || (target.ebitdaGrowth ?? 0) > 50)
+                      _buildBadge("HIGH GROWTH", Colors.deepOrange)
+                    else if ((target.salesGrowth ?? 0) < 20 && (target.ebitdaGrowth ?? 0) < 20)
+                      _buildBadge("LOW GROWTH", Colors.tealAccent),
                   ],
                 ),
                 const SizedBox(height: 16),

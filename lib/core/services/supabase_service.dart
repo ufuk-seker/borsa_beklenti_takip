@@ -40,6 +40,8 @@ class SupabaseService {
       ebitda: m['ebitda']?.toDouble(),
       ebitdaGrowth: m['ebitda_growth']?.toDouble(),
       ebitdaMargin: m['ebitda_margin']?.toDouble(),
+      investment: m['investment']?.toDouble(),
+      notes: m['notes'],
     )).toList();
   }
 
@@ -52,6 +54,8 @@ class SupabaseService {
       'ebitda': target.ebitda,
       'ebitda_growth': target.ebitdaGrowth,
       'ebitda_margin': target.ebitdaMargin,
+      'investment': target.investment,
+      'notes': target.notes,
     }, onConflict: 'company_id, year');
   }
 

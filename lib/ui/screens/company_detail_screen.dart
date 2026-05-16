@@ -83,6 +83,10 @@ class CompanyDetailScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 32),
+            if (target.notes != null && target.notes!.isNotEmpty) ...[
+              _buildNotesSection(context, target.notes!),
+              const SizedBox(height: 32),
+            ],
             _buildQuarterlyTable(context, provider),
           ],
         ),
@@ -296,6 +300,16 @@ class CompanyDetailScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildStatTile("Beklenen Marj", "%${target.ebitdaMargin?.toStringAsFixed(1) ?? "0"}", Icons.percent),
+        if (target.investment != null && target.investment != 0) ...[
+          const SizedBox(height: 16),
+          _buildStatTile(
+            "Hedef Yatırım", 
+            target.investment?.toStringAsFixed(0) ?? "0", 
+            Icons.account_balance_wallet,
+            progressColor: AppTheme.accentBlue,
+            subtitle: "Yıllık Planlanan",
+          ),
+        ],
       ],
     );
   }
@@ -486,6 +500,43 @@ class CompanyDetailScreen extends StatelessWidget {
         Text(p4),
         const SizedBox(),
       ],
+    );
+  }
+
+  Widget _buildNotesSection(BuildContext context, String notes) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.accentGreen.withOpacity(0.2)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.surface,
+            AppTheme.accentGreen.withOpacity(0.05),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.description_outlined, color: AppTheme.accentGreen, size: 20),
+              SizedBox(width: 12),
+              Text("Analist Notları", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            notes,
+            style: const TextStyle(color: AppTheme.textMain, height: 1.5, fontSize: 14),
+          ),
+        ],
+      ),
     );
   }
 }
